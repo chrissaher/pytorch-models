@@ -85,7 +85,6 @@ def train(args):
         model.train()
         for input, target in tqdm(train_data):
             input, target = input.to(device), target.to(device)
-            print("input size: ", input.size())
             optimizer.zero_grad()
             pred = model(input)
             loss = criterion(pred, target)
@@ -94,7 +93,7 @@ def train(args):
             optimizer.step()
             if train_logger is not None:
                 train_logger.add_scalar('loss', round(loss.item(), 4), train_index)
-                train_acc += accuracy(pred, output)
+                train_acc += accuracy(pred, target)
             train_index += 1
 
         model.eval()
