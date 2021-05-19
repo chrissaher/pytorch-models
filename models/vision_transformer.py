@@ -88,7 +88,8 @@ class TransformerEncoderBlock(torch.nn.Module):
         return z
 
 class VisionTransformer(torch.nn.Module):
-    def __init__(self, img_size, in_channels, num_classes, patch_size=32, embed_dim=1024, n_layers=8):
+    def __init__(self, img_size, in_channels, num_classes, patch_size=32,
+                 embed_dim=1024, n_layers=8, attn_drop=0., drop_rate=0.):
         super().__init__()
 
         assert img_size % patch_size == 0
@@ -107,7 +108,7 @@ class VisionTransformer(torch.nn.Module):
         c = embed_dim
         layers = [1024] * 1
         for l in layers:
-            L.append(TransformerEncoderBlock(c, l))
+            L.append(TransformerEncoderBlock(c, l, attn_drop=attn_drop,drop_rate=drop_rate))
             c = l
         self.network = torch.nn.Sequential(*L)
         self.classifier = torch.nn.Linear(c, num_classes)

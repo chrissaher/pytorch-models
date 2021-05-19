@@ -49,7 +49,7 @@ def train(args):
     batch_size = args.batch_size
 
     ds_info = dataset_info[args.dataset_name]
-    model = models[args.model_name](ds_info[0], ds_info[1], ds_info[2], patch_size=8)
+    model = models[args.model_name](ds_info[0], ds_info[1], ds_info[2], patch_size=8, attn_drop=0.2, drop_rate=0.2)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
@@ -104,7 +104,7 @@ def train(args):
 
         train_acc = round(train_acc / len(train_data), 4)
         valid_acc = round(valid_acc / len(valid_data), 4)
-        
+
         if train_logger is not None:
             train_logger.add_scalar('accuracy', train_acc, epoch)
 
