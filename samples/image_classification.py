@@ -112,7 +112,7 @@ def train(args):
             train_logger.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
             scheduler.step(valid_acc)
 
-        print(f"epoch: {epochs + 1} || train_loss: {train_loss} || train_acc: {train_acc} || valid_acc: {valid_acc}")
+        print(f"epoch: {epoch + 1} || train_loss: {train_loss} || train_acc: {train_acc} || valid_acc: {valid_acc}")
 
 
 
