@@ -102,8 +102,8 @@ def train(args):
             pred = model(input)
             valid_acc += accuracy(pred, target).item()
 
-        train_acc = round(train_acc / len(train_data), 4)
-        valid_acc = round(valid_acc / len(valid_data), 4)
+        train_acc = round(train_acc * 100 / len(train_data) / batch_size, 4)
+        valid_acc = round(valid_acc * 100 / len(valid_data) / batch_size, 4)
 
         if train_logger is not None:
             train_logger.add_scalar('accuracy', train_acc, epoch)
