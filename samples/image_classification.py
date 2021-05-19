@@ -10,6 +10,8 @@ from tqdm import tqdm
 from models.vision_transformer import VisionTransformer
 
 
+torch.manual_seed(0)
+
 models = {
     'vit': VisionTransformer
 }
