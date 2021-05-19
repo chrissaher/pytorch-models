@@ -13,7 +13,7 @@ import torch
 
 class MultiHeadAttention(torch.nn.Module):
 
-    def __init__(self, in_channels, out_channels, num_heads=8):
+    def __init__(self, in_channels, out_channels, num_heads=8, drop_rate=0.):
         super().__init__()
         assert out_channels % num_heads == 0
 
@@ -21,6 +21,9 @@ class MultiHeadAttention(torch.nn.Module):
         self.W_k = torch.nn.Linear(in_channels, out_channels, bias=False)
         self.W_v = torch.nn.Linear(in_channels, out_channels, bias=False)
         self.W_h = torch.nn.Linear(out_channels, out_channels)
+
+        self.attention_drop = torch.nn.Dropout(drop_rate)
+        self.proj_drop = torch.nn.Dropout(drop_rate)
 
         self.d_k = out_channels // num_heads
 
@@ -34,6 +37,7 @@ class MultiHeadAttention(torch.nn.Module):
         scores = torch.matmul(Q, K.transpose(2, 3))
 
         A = torch.nn.Softmax(dim=-1)(scores)
+        A = self.attention_drop(A)
         H = torch.matmul(A, V)
 
         return H
@@ -55,20 +59,23 @@ class MultiHeadAttention(torch.nn.Module):
         H = self.group_heads(H, batch_size)
 
         H = self.W_h(H)
+        H = self.proj_drop(H)
 
         return H
 
 
 class TransformerEncoderBlock(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, heads=8, mlp_hidden=2048):
+    def __init__(self, in_channels, out_channels, heads=8, mlp_hidden=2048, attn_drop=0., drop_rate=0.):
         super().__init__()
         self.layernorm1 = torch.nn.LayerNorm(in_channels)
         self.layernorm2 = torch.nn.LayerNorm(out_channels)
-        self.mha = MultiHeadAttention(in_channels, out_channels, heads)
+        self.mha = MultiHeadAttention(in_channels, out_channels, heads, attn_drop)
         self.mlp = torch.nn.Sequential(
             torch.nn.Linear(out_channels, mlp_hidden),
             torch.nn.GELU(),
-            torch.nn.Linear(mlp_hidden, out_channels)
+            torch.nn.Dropout(drop_rate),
+            torch.nn.Linear(mlp_hidden, out_channels),
+            torch.nn.Dropout(drop_rate),
         )
 
     def forward(self, x):
