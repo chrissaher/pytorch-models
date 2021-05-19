@@ -93,7 +93,7 @@ def train(args):
             optimizer.step()
             if train_logger is not None:
                 train_logger.add_scalar('loss', train_loss, train_index)
-                train_acc += accuracy(pred, target)
+                train_acc += accuracy(pred, target).item()
             train_index += 1
 
         model.eval()
