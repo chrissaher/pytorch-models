@@ -106,7 +106,7 @@ class VisionTransformer(torch.nn.Module):
         self.pos_embed = torch.nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
         L = []
         c = embed_dim
-        layers = [1024] * 1
+        layers = [1024] * n_layers
         for l in layers:
             L.append(TransformerEncoderBlock(c, l, attn_drop=attn_drop,drop_rate=drop_rate))
             c = l
