@@ -133,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model_name', type=str, default='vit')
     parser.add_argument('-ds', '--dataset_name', type=str, default='cifar10')
     parser.add_argument('-r', '--root', type=str, default='./data')
-    parser.add_argument('-at', '--attn_drop', type=float, default=0.)
+    parser.add_argument('-ad', '--attn_drop', type=float, default=0.)
     parser.add_argument('-dr', '--drop_rate', type=float, default=0.)
 
     args = parser.parse_args()
