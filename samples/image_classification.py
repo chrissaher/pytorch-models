@@ -88,11 +88,11 @@ def train(args):
             optimizer.zero_grad()
             pred = model(input)
             loss = criterion(pred, target)
-            train_loss += loss.item()
+            train_loss = round(loss.item(), 4)
             loss.backward()
             optimizer.step()
             if train_logger is not None:
-                train_logger.add_scalar('loss', round(loss.item(), 4), train_index)
+                train_logger.add_scalar('loss', train_loss, train_index)
                 train_acc += accuracy(pred, target)
             train_index += 1
 
@@ -112,6 +112,8 @@ def train(args):
             train_logger.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
             scheduler.step(valid_acc)
 
+        train_acc = round(train_acc / len(train_data), 4)
+        valid_acc = round(valid_acc / len(valid_data), 4)
         print(f"epoch: {epoch + 1} || train_loss: {train_loss} || train_acc: {train_acc} || valid_acc: {valid_acc}")
 
 
