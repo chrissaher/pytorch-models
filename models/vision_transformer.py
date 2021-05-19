@@ -121,14 +121,3 @@ class VisionTransformer(torch.nn.Module):
         cls_token = z[:, 0]
         z = self.classifier(cls_token)
         return z
-
-
-if __name__ == '__main__':
-    batch_size = 2
-    img_size = 256
-    D = 1024
-    x = torch.ones(batch_size, 3, img_size, img_size)
-    vit = VisionTransformer(img_size, 3, num_classes=10, patch_size=32, embed_dim=D)
-    z = vit(x)
-    print("x: ", x.size())
-    print("z: ", z.size())
