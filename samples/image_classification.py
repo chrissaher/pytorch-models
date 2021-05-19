@@ -47,9 +47,11 @@ def train(args):
     epochs = args.epochs
     lr = args.learning_rate
     batch_size = args.batch_size
+    attn_drop = args.attn_drop
+    drop_rate = args.drop_rate
 
     ds_info = dataset_info[args.dataset_name]
-    model = models[args.model_name](ds_info[0], ds_info[1], ds_info[2], patch_size=8, attn_drop=0.2, drop_rate=0.2)
+    model = models[args.model_name](ds_info[0], ds_info[1], ds_info[2], patch_size=8, attn_drop=attn_drop, drop_rate=drop_rate)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
@@ -131,6 +133,8 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model_name', type=str, default='vit')
     parser.add_argument('-ds', '--dataset_name', type=str, default='cifar10')
     parser.add_argument('-r', '--root', type=str, default='./data')
+    parser.add_argument('-at', '--attn_drop', type=float, default=0.)
+    parser.add_argument('-dr', '--drop_rate', type=float, default=0.)
 
     args = parser.parse_args()
     train(args)
