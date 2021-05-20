@@ -64,9 +64,14 @@ def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
-    transfrom = T.Compose([
+    train_transfrom = T.Compose([
         T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
         T.RandomHorizontalFlip(0.5),
+        T.ToTensor(),
+        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+
+    valid_transform = T.Compose([
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
@@ -76,7 +81,7 @@ def train(args):
                            num_workers=0,
                            batch_size=batch_size,
                            train=True,
-                           transform=transfrom,
+                           transform=train_transfrom,
                            download=True)
 
 
@@ -85,7 +90,7 @@ def train(args):
                            num_workers=0,
                            batch_size=batch_size,
                            train=False,
-                           transform=transfrom,
+                           transform=valid_transfrom,
                            download=True)
 
     criterion = torch.nn.CrossEntropyLoss()
