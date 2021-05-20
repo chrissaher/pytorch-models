@@ -77,11 +77,13 @@ class TransformerEncoderBlock(torch.nn.Module):
             torch.nn.Linear(mlp_hidden, out_channels),
             torch.nn.Dropout(drop_rate),
         )
+        self.dropout = torch.nn.Dropout(drop_rate)
 
     def forward(self, x):
         identity = x
         z = self.layernorm1(x)
-        z = self.mha(z) + identity
+        z = self.mha(z)
+        z = self.dropout(z) + identity
         identity = z
         z = self.layernorm2(z)
         z = self.mlp(z) + identity
@@ -104,12 +106,14 @@ class VisionTransformer(torch.nn.Module):
         self.cls_token = torch.nn.Parameter(torch.zeros(1, 1, embed_dim))
 
         self.pos_embed = torch.nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
+        self.pos_dropout = torch.nn.Dropout(drop_rate)
         L = []
         c = embed_dim
         layers = [1024] * n_layers
         for l in layers:
             L.append(TransformerEncoderBlock(c, l, attn_drop=attn_drop,drop_rate=drop_rate))
             c = l
+        L.append(torch.nn.LayerNorm(c))
         self.network = torch.nn.Sequential(*L)
         self.classifier = torch.nn.Linear(c, num_classes)
 
@@ -118,6 +122,7 @@ class VisionTransformer(torch.nn.Module):
         x = self.embed_layer(x).flatten(2).transpose(1, 2)
         cls_token = self.cls_token.expand(batch_size, -1, -1)
         x = torch.cat((cls_token, x), dim=1)
+        x = self.pos_dropout(x)
         z = self.network(x)
         cls_token = z[:, 0]
         z = self.classifier(cls_token)
