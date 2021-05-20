@@ -54,12 +54,13 @@ def train(args):
     patch_size = args.patch_size
     num_layers = args.num_layers
     mlp_hidden = args.mlp_hidden
+    num_heads = args.num_heads
 
     ds_info = dataset_info[args.dataset_name]
     model = models[args.model_name](ds_info[0], ds_info[1], ds_info[2],
                                     patch_size=patch_size, attn_drop=attn_drop,
-                                    mlp_hidden = mlp_hidden, drop_rate=drop_rate,
-                                    num_layers=num_layers)
+                                    mlp_hidden=mlp_hidden, drop_rate=drop_rate,
+                                    num_layers=num_layers, num_heads=num_heads)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
@@ -146,6 +147,7 @@ if __name__ == '__main__':
     parser.add_argument('-ps', '--patch_size', type=int, default=8)
     parser.add_argument('-nl', '--num_layers', type=int, default=8)
     parser.add_argument('-mh', '--mlp_hidden', type=int, default=2048)
+    parser.add_argument('-nh', '--num_heads', type=int, default=8)
 
     args = parser.parse_args()
     train(args)

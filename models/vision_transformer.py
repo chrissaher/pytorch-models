@@ -65,11 +65,11 @@ class MultiHeadAttention(torch.nn.Module):
 
 
 class TransformerEncoderBlock(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, heads=8, mlp_hidden=2048, attn_drop=0., drop_rate=0.):
+    def __init__(self, in_channels, out_channels, num_heads=8, mlp_hidden=2048, attn_drop=0., drop_rate=0.):
         super().__init__()
         self.layernorm1 = torch.nn.LayerNorm(in_channels)
         self.layernorm2 = torch.nn.LayerNorm(out_channels)
-        self.mha = MultiHeadAttention(in_channels, out_channels, heads, attn_drop)
+        self.mha = MultiHeadAttention(in_channels, out_channels, num_heads, attn_drop)
         self.mlp = torch.nn.Sequential(
             torch.nn.Linear(out_channels, mlp_hidden),
             torch.nn.GELU(),
@@ -91,8 +91,8 @@ class TransformerEncoderBlock(torch.nn.Module):
 
 class VisionTransformer(torch.nn.Module):
     def __init__(self, img_size, in_channels, num_classes, patch_size=32,
-                 embed_dim=1024, num_layers=8, attn_drop=0., mlp_hidden=2048
-                 drop_rate=0.):
+                 embed_dim=1024, num_layers=8, attn_drop=0., num_heads=8,
+                 mlp_hidden=2048, drop_rate=0.):
         super().__init__()
 
         assert img_size % patch_size == 0
@@ -112,7 +112,10 @@ class VisionTransformer(torch.nn.Module):
         c = embed_dim
         layers = [1024] * num_layers
         for l in layers:
-            L.append(TransformerEncoderBlock(c, l, attn_drop=attn_drop,drop_rate=drop_rate))
+            L.append(TransformerEncoderBlock(c, l, attn_drop=attn_drop,
+                                             num_heads=num_heads,
+                                             mlp_hidden=mlp_hidden,
+                                             drop_rate=drop_rate))
             c = l
         L.append(torch.nn.LayerNorm(c))
         self.network = torch.nn.Sequential(*L)
