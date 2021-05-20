@@ -90,7 +90,7 @@ def train(args):
                            num_workers=0,
                            batch_size=batch_size,
                            train=False,
-                           transform=valid_transfrom,
+                           transform=valid_transform,
                            download=True)
 
     criterion = torch.nn.CrossEntropyLoss()
