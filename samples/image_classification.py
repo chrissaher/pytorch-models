@@ -52,11 +52,12 @@ def train(args):
     attn_drop = args.attn_drop
     drop_rate = args.drop_rate
     patch_size = args.patch_size
+    num_layers = args.num_layers
 
     ds_info = dataset_info[args.dataset_name]
     model = models[args.model_name](ds_info[0], ds_info[1], ds_info[2],
                                     patch_size=patch_size, attn_drop=attn_drop,
-                                    drop_rate=drop_rate)
+                                    drop_rate=drop_rate, num_layers=num_layers)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
@@ -141,6 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('-ad', '--attn_drop', type=float, default=0.)
     parser.add_argument('-dr', '--drop_rate', type=float, default=0.)
     parser.add_argument('-ps', '--patch_size', type=int, default=8)
+    parser.add_argument('-nl', '--num_layers', type=int, default=8)
 
     args = parser.parse_args()
     train(args)
