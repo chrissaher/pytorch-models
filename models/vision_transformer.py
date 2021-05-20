@@ -91,7 +91,8 @@ class TransformerEncoderBlock(torch.nn.Module):
 
 class VisionTransformer(torch.nn.Module):
     def __init__(self, img_size, in_channels, num_classes, patch_size=32,
-                 embed_dim=1024, num_layers=8, attn_drop=0., drop_rate=0.):
+                 embed_dim=1024, num_layers=8, attn_drop=0., mlp_hidden=2048
+                 drop_rate=0.):
         super().__init__()
 
         assert img_size % patch_size == 0
