@@ -64,13 +64,17 @@ def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
+    transfrom = T.Compose([
+        T.ToTensor(),
+        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
     train_data = load_data(args.dataset_name,
                            'data',
                            num_workers=0,
                            batch_size=batch_size,
                            train=True,
-                           transform=T.ToTensor(),
+                           transform=transfrom,
                            download=True)
 
 
@@ -79,7 +83,7 @@ def train(args):
                            num_workers=0,
                            batch_size=batch_size,
                            train=False,
-                           transform=T.ToTensor(),
+                           transform=transfrom,
                            download=True)
 
     criterion = torch.nn.CrossEntropyLoss()
