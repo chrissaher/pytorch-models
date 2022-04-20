@@ -9,17 +9,25 @@ This codes is based on:
 Also, code style is borrowd from prof. Philipp Krähenbühl classes
 """
 import torch
+import torch.nn as nn
+from .configuration_vision_transformer import VisionTransformerConfig
 
 
 class MultiHeadAttention(torch.nn.Module):
 
-    def __init__(self, in_channels, out_channels, num_heads=8, drop_rate=0.):
+    def __init__(
+        self,
+        num_channels: int,
+        out_channels: int,
+        num_heads: int = 8,
+        drop_rate: float = 0.,
+    ):
         super().__init__()
         assert out_channels % num_heads == 0
 
-        self.W_q = torch.nn.Linear(in_channels, out_channels, bias=False)
-        self.W_k = torch.nn.Linear(in_channels, out_channels, bias=False)
-        self.W_v = torch.nn.Linear(in_channels, out_channels, bias=False)
+        self.W_q = torch.nn.Linear(num_channels, out_channels, bias=False)
+        self.W_k = torch.nn.Linear(num_channels, out_channels, bias=False)
+        self.W_v = torch.nn.Linear(num_channels, out_channels, bias=False)
         self.W_h = torch.nn.Linear(out_channels, out_channels)
 
         self.attention_drop = torch.nn.Dropout(drop_rate)
@@ -65,11 +73,19 @@ class MultiHeadAttention(torch.nn.Module):
 
 
 class TransformerEncoderBlock(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, num_heads=8, mlp_hidden=2048, attn_drop=0., drop_rate=0.):
+    def __init__(
+        self,
+        num_channels: int,
+        out_channels: int,
+        num_heads: int = 8,
+        mlp_hidden: int = 2048,
+        attention_drop: float = 0.,
+        drop_rate: float = 0.,
+    ):
         super().__init__()
-        self.layernorm1 = torch.nn.LayerNorm(in_channels)
+        self.layernorm1 = torch.nn.LayerNorm(num_channels)
         self.layernorm2 = torch.nn.LayerNorm(out_channels)
-        self.mha = MultiHeadAttention(in_channels, out_channels, num_heads, attn_drop)
+        self.mha = MultiHeadAttention(num_channels, out_channels, num_heads, attention_drop)
         self.mlp = torch.nn.Sequential(
             torch.nn.Linear(out_channels, mlp_hidden),
             torch.nn.GELU(),
@@ -89,30 +105,60 @@ class TransformerEncoderBlock(torch.nn.Module):
         z = self.mlp(z) + identity
         return z
 
+class VisionTransformerPreTrainedModel():
+    """
+    An anstract class to handle weights initialization and a simple interface
+    for downloading and loading pretrained models.
+    """
+    config_class = VisionTransformerConfig
+    supports_gradient_checkpointing = False
+
+    def __init__weights(self, module):
+        if isinstance(moduke, nn.Conv2d):
+            nn.init.kaiming_normal_(module.weight, mode="fan_out")
+        elif isinstance(module, nn.LayerNorm):
+            nn.init.constant_(module.weight, 1)
+            nn.init.constant_(module.bias, 0)
+
+    def _set_gradient_checkpointing(self, module, value=False):
+        if isinstance(module, VisionTransformer):
+            module.gradient_checkpointing = value
+
 class VisionTransformer(torch.nn.Module):
-    def __init__(self, img_size, in_channels, num_classes, patch_size=32,
-                 embed_dim=1024, num_layers=8, attn_drop=0., num_heads=8,
-                 mlp_hidden=2048, drop_rate=0.):
+    def __init__(
+            self,
+            img_size: int,
+            num_channels: int,
+            num_classes: int,
+            patch_size: int = 32,
+            embedding_dim: int = 1024,
+            num_layers: int = 8,
+            attention_drop: float =0.,
+            num_heads: int = 8,
+            mlp_hidden: int = 2048,
+            drop_rate: float = 0.
+    ):
         super().__init__()
 
         assert img_size % patch_size == 0
         num_patches = img_size**2 // patch_size**2
-        self.embed_dim = embed_dim
+        self.num_classes = num_classes
+        self.embedding_dim = embedding_dim
 
-        self.embed_layer = torch.nn.Conv2d(in_channels,
-                                           embed_dim,
+        self.embed_layer = torch.nn.Conv2d(num_channels,
+                                           embedding_dim,
                                            kernel_size=patch_size,
                                            stride = patch_size)
 
-        self.cls_token = torch.nn.Parameter(torch.zeros(1, 1, embed_dim))
+        self.cls_token = torch.nn.Parameter(torch.zeros(1, 1, embedding_dim))
 
-        self.pos_embed = torch.nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
+        self.pos_embed = torch.nn.Parameter(torch.zeros(1, num_patches + 1, embedding_dim))
         self.pos_dropout = torch.nn.Dropout(drop_rate)
         L = []
-        c = embed_dim
+        c = embedding_dim
         layers = [1024] * num_layers
         for l in layers:
-            L.append(TransformerEncoderBlock(c, l, attn_drop=attn_drop,
+            L.append(TransformerEncoderBlock(c, l, attention_drop=attention_drop,
                                              num_heads=num_heads,
                                              mlp_hidden=mlp_hidden,
                                              drop_rate=drop_rate))
@@ -120,6 +166,23 @@ class VisionTransformer(torch.nn.Module):
         L.append(torch.nn.LayerNorm(c))
         self.network = torch.nn.Sequential(*L)
         self.classifier = torch.nn.Linear(c, num_classes)
+
+
+    @classmethod
+    def fromconfig(cls, config:VisionTransformerConfig):
+        kwargs = {
+            "img_size": config.image_size,
+            "num_channels": config.num_channels,
+            "num_classes": config.num_classes,
+            "patch_size": config.patch_size,
+            "embedding_dim": config.embedding_dim,
+            "num_layers": config.num_layers,
+            "attention_drop": config.attention_drop,
+            "num_heads": config.num_heads,
+            "mlp_hidden": config.mlp_hidden,
+            "drop_rate": config.drop_rate,
+        }
+        return cls(**kwargs)
 
     def forward(self, x):
         batch_size, C, H, W = x.size()
